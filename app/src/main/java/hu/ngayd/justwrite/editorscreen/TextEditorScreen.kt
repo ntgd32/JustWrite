@@ -1,8 +1,8 @@
 package hu.ngayd.justwrite.editorscreen
 
-import android.util.Log
 import androidx.compose.animation.core.SpringSpec
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
@@ -17,8 +17,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -27,13 +31,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
@@ -42,7 +49,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.ngayd.justwrite.R
 import hu.ngayd.justwrite.rememberImeState
-import hu.ngayd.justwrite.ui.theme.OrchidBranch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -52,6 +58,8 @@ class TextEditorScreen(
 	private val onSaveAs: () -> Unit,
 	private val onOpen: () -> Unit,
 	private val onOpenSettings: () -> Unit,
+	private val onOpenOverview: () -> Unit,
+	private val onOpenAbout: () -> Unit,
 ) {
 
 	@Composable
@@ -66,8 +74,6 @@ class TextEditorScreen(
 		LaunchedEffect(imeState.value) {
 			val cursorPosition = textLayoutResult.value?.getCursorRect(text.value.selection.start)?.top?.toInt()
 			if (imeState.value && cursorPosition != null) {
-				Log.d("oks", "max " + scrollState.maxValue.toString())
-				Log.d("oks", "scroll ${cursorPosition - 1000}")
 				val scrollPosition = cursorPosition - 1000
 				coroutineScope.launch {
 					delay(100)
@@ -114,6 +120,7 @@ class TextEditorScreen(
 			Column(
 				modifier = Modifier
 					.fillMaxSize()
+					.background(color = MaterialTheme.colorScheme.primary)
 					.padding(
 						top = innerPadding.calculateTopPadding(),
 						start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
@@ -126,9 +133,10 @@ class TextEditorScreen(
 					modifier = Modifier
 						.fillMaxWidth()
 						.fillMaxHeight()
-						.padding(horizontal = 16.dp),
+						.padding(start = 16.dp, end = 16.dp, top = 10.dp),
 					value = text.value,
 					textStyle = TextStyle(
+						color = MaterialTheme.colorScheme.onPrimary,
 						fontSize = 18.sp
 					),
 					onValueChange = {
@@ -152,51 +160,104 @@ class TextEditorScreen(
 		modifier: Modifier,
 		appBarText: MutableState<String>,
 	) {
-		TopAppBar(
-			modifier = modifier,
-			title = {
-				Text(
-					appBarText.value,
-					color = Color.White
+		var isMenuExpanded by remember { mutableStateOf(false) }
+
+		Column {
+			TopAppBar(
+				modifier = modifier,
+				title = {
+					Text(
+						appBarText.value,
+						color = Color.White
+					)
+				},
+				actions = {
+					IconButton(onClick = {
+						onOpen()
+					}) {
+						Image(
+							painter = painterResource(id = R.drawable.open_from_cataloque),
+							contentDescription = stringResource(R.string.open_title)
+						)
+					}
+					IconButton(onClick = {
+						onSaveAs()
+					}) {
+						Image(
+							painter = painterResource(id = R.drawable.download),
+							contentDescription = stringResource(R.string.save_as_title)
+						)
+					}
+					IconButton(onClick = {
+						onSave()
+					}) {
+						Image(
+							painter = painterResource(id = R.drawable.save),
+							contentDescription = stringResource(R.string.save_title)
+						)
+					}
+					IconButton(onClick = { isMenuExpanded = true }) {
+						Image(
+							painter = painterResource(id = R.drawable.menu),
+							contentDescription = stringResource(R.string.menu_title)
+						)
+					}
+					DropdownMenu(
+						expanded = isMenuExpanded,
+						onDismissRequest = { isMenuExpanded = false }
+					) {
+						DropdownMenuItem(
+							text = { Text(stringResource(R.string.overview_title)) },
+							onClick = {
+								isMenuExpanded = false
+								onOpenOverview()
+							},
+							leadingIcon = {
+								Image(
+									painter = painterResource(id = R.drawable.overview),
+									contentDescription = stringResource(R.string.overview_title)
+								)
+							},
+						)
+						DropdownMenuItem(
+							text = { Text(stringResource(R.string.settings_title)) },
+							onClick = {
+								isMenuExpanded = false
+								onOpenSettings()
+							},
+							leadingIcon = {
+								Image(
+									painter = painterResource(id = R.drawable.settings),
+									contentDescription = stringResource(R.string.settings_title)
+								)
+							},
+						)
+						DropdownMenuItem(
+							text = { Text(stringResource(R.string.about_title)) },
+							onClick = {
+								isMenuExpanded = false
+								onOpenAbout()
+							},
+							leadingIcon = {
+								Image(
+									painter = painterResource(id = R.drawable.about),
+									contentDescription = stringResource(R.string.about_title)
+								)
+							},
+						)
+					}
+				},
+				colors = TopAppBarDefaults.topAppBarColors(
+					containerColor = MaterialTheme.colorScheme.secondary,
 				)
-			},
-			actions = {
-				IconButton(onClick = {
-					onOpen()
-				}) {
-					Image(
-						painter = painterResource(id = R.drawable.open_from_cataloque),
-						contentDescription = "Open From Folder"
-					)
-				}
-				IconButton(onClick = {
-					onSaveAs()
-				}) {
-					Image(
-						painter = painterResource(id = R.drawable.download),
-						contentDescription = "Save File As"
-					)
-				}
-				IconButton(onClick = {
-					onSave()
-				}) {
-					Image(
-						painter = painterResource(id = R.drawable.save),
-						contentDescription = "Save File"
-					)
-				}
-				IconButton(onClick = {
-					onOpenSettings()
-				}) {
-					Image(
-						painter = painterResource(id = R.drawable.settings),
-						contentDescription = "Settings"
-					)
-				}
-			},
-			colors = TopAppBarDefaults.topAppBarColors(
-				containerColor = OrchidBranch,
 			)
-		)
+
+			HorizontalDivider(
+				modifier = Modifier
+					.fillMaxWidth(),
+				thickness = 1.dp,
+				color = Color.Black
+			)
+		}
 	}
 }

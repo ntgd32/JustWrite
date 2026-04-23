@@ -7,8 +7,28 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withLink
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+
+val aboutText = buildAnnotatedString {
+	append(
+		"This app is for writing without overthinking.\n" +
+			"Pause too long, and the text fades away.\n\n" +
+			"Made by NGayd\n" +
+			"Icons by "
+	)
+
+	withLink(
+		LinkAnnotation.Url(
+			url = "https://icons8.com"
+		)
+	) {
+		append("Icons8")
+	}
+}
 
 @Composable
 fun rememberImeState(): MutableState<Boolean> {

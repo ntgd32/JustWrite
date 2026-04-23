@@ -25,19 +25,24 @@ object SettingsRepository {
 
 		eraseDelaySeconds.intValue =
 			prefs.getInt(KEY_ERASE_DELAY, DEFAULT_ERASE_DELAY)
-		setBeforeAfterTimerTime()
+		setBeforeAfterTime()
 	}
 
 	fun setEraseDelay(value: Int) {
 		eraseDelaySeconds.intValue = value
-		setBeforeAfterTimerTime()
+		setBeforeAfterTime()
 		prefs.edit {
 			putInt(KEY_ERASE_DELAY, value)
 		}
 	}
 
-	private fun setBeforeAfterTimerTime() {
+	private fun setBeforeAfterTime() {
 		when (eraseDelaySeconds.intValue) {
+			EraseDelay.SEC_15.seconds -> {
+				beforeTimerSeconds = 5
+				afterTimerSeconds = 10
+			}
+
 			EraseDelay.SEC_30.seconds -> {
 				beforeTimerSeconds = 15
 				afterTimerSeconds = 15
@@ -57,6 +62,7 @@ object SettingsRepository {
 }
 
 enum class EraseDelay(val seconds: Int) {
+	SEC_15(15),
 	SEC_30(30),
 	SEC_45(45),
 	SEC_60(60)

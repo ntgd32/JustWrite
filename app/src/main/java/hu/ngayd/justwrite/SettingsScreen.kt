@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -96,19 +97,25 @@ class SettingsScreen(
 			Spacer(Modifier.height(8.dp))
 
 			EraseDelayOption(
-				text = "30 seconds",
+				text = stringResource(R.string.timer_15),
+				selected = eraseDelay.intValue == EraseDelay.SEC_15.seconds,
+				onClick = { onSelected(EraseDelay.SEC_15) },
+			)
+
+			EraseDelayOption(
+				text = stringResource(R.string.timer_30),
 				selected = eraseDelay.intValue == EraseDelay.SEC_30.seconds,
 				onClick = { onSelected(EraseDelay.SEC_30) },
 			)
 
 			EraseDelayOption(
-				text = "45 seconds",
+				text = stringResource(R.string.timer_45),
 				selected = eraseDelay.intValue == EraseDelay.SEC_45.seconds,
 				onClick = { onSelected(EraseDelay.SEC_45) },
 			)
 
 			EraseDelayOption(
-				text = "60 seconds",
+				text = stringResource(R.string.timer_60),
 				selected = eraseDelay.intValue == EraseDelay.SEC_60.seconds,
 				onClick = { onSelected(EraseDelay.SEC_60) },
 			)

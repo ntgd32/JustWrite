@@ -8,6 +8,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.lifecycleScope
 import hu.ngayd.justwrite.editorscreen.TextEditorPresenter
@@ -39,11 +41,11 @@ class MainActivity : ComponentActivity() {
 				lifecycleScope.launch(Dispatchers.IO) {
 					val text = readFromFile(uri, contentResolver)
 					TextRepository.text.value = TextFieldValue(text)
+					TextRepository.uri = uri
+					TextRepository.resetLostStats()
+					SessionState.setDialogClosed()
 				}
-				TextRepository.uri = uri
 			} else {
-				// resetting timer only if no file opened
-				// otherwise letting user to read the file
 				SessionState.setDialogClosed()
 			}
 		}
@@ -55,8 +57,9 @@ class MainActivity : ComponentActivity() {
 		SettingsRepository.init(this)
 
 		setContent {
-			val isSettingsMode = remember { mutableStateOf(false) }
-			val presenter = remember { TextEditorPresenter() }
+			val openedDialog = remember { mutableStateOf<DialogType?>(null) }
+			val areSettingsOpened = remember { mutableStateOf(false) }
+			val presenter: TextEditorPresenter = androidx.lifecycle.viewmodel.compose.viewModel()
 
 			JustWriteTheme {
 				TextEditorScreen(
@@ -79,16 +82,57 @@ class MainActivity : ComponentActivity() {
 					},
 					onOpenSettings = {
 						SessionState.setDialogOpened()
-						isSettingsMode.value = true
+						areSettingsOpened.value = true
+					},
+					onOpenOverview = {
+						SessionState.setDialogOpened()
+						openedDialog.value = DialogType.OVERVIEW
+					},
+					onOpenAbout = {
+						SessionState.setDialogOpened()
+						openedDialog.value = DialogType.ABOUT
 					},
 				).Screen()
-				if (isSettingsMode.value)
+
+				if (areSettingsOpened.value)
+
 					SettingsScreen(
 						onBack = {
 							SessionState.setDialogClosed()
-							isSettingsMode.value = false
+							areSettingsOpened.value = false
 						},
 					).Screen()
+
+				if (openedDialog.value == DialogType.OVERVIEW) {
+					val stats = TextRepository.getStats()
+					InfoDialog(
+						title = stringResource(R.string.overview_title),
+						text = stringResource(
+							R.string.overview_text,
+							stats.wordsWritten,
+							stats.charactersWritten,
+							stats.wordsLost,
+							stats.charactersLost
+						),
+						annotatedText = AnnotatedString(""),
+						onDismiss = {
+							SessionState.setDialogClosed()
+							openedDialog.value = null
+						}
+					)
+				}
+
+				if (openedDialog.value == DialogType.ABOUT)
+					InfoDialog(
+						title = stringResource(R.string.about_title),
+						text = "",
+						annotatedText = aboutText,
+						onDismiss = {
+							SessionState.setDialogClosed()
+							openedDialog.value = null
+						}
+					)
+
 			}
 		}
 	}

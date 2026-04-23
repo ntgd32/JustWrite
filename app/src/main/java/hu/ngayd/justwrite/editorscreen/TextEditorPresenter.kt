@@ -19,20 +19,24 @@ class TextEditorPresenter : ViewModel() {
 	val appBarText = mutableStateOf("")
 	val placeholder = TextFieldValue("Start your story...")
 
-	fun onTextChange(newValue: TextFieldValue) {
-		TextRepository.text.value = newValue
-	}
-
 	val textFlow: StateFlow<TextFieldValue>
 		get() = TextRepository.text
 
 	private fun textValue(): TextFieldValue =
 		TextRepository.text.value
 
+	fun onTextChange(newValue: TextFieldValue) {
+		TextRepository.text.value = newValue
+	}
+
 	init {
 		viewModelScope.launch {
 			SessionState.isSystemDialogOpen.collect { isOpen ->
-				if (isOpen) cancelEraseTimer() else restartEraseTimer()
+				if (isOpen) {
+					cancelEraseTimer()
+				} else {
+					restartEraseTimer()
+				}
 			}
 		}
 	}
@@ -50,19 +54,13 @@ class TextEditorPresenter : ViewModel() {
 					time--
 				}
 				while (true) {
-					val currentValue = TextRepository.text
-					if (currentValue.value.text.isEmpty()) {
+					if (TextRepository.text.value.text.isEmpty()) {
 						appBarText.value = ""
 						break
 					}
 
-					val newText = currentValue.value.text.dropLast(1)
-					val newValue = currentValue.value.copy(
-						text = newText,
-						//selection = TextRange(newText.length)
-					)
+					TextRepository.eraseLastCharacter()
 
-					onTextChange(newValue)
 					delay(500L)
 				}
 			}
