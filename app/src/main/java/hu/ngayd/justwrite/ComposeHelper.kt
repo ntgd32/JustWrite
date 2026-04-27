@@ -8,10 +8,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import hu.ngayd.justwrite.ui.theme.Selection
 
 val aboutText = buildAnnotatedString {
 	append(
@@ -26,7 +30,14 @@ val aboutText = buildAnnotatedString {
 			url = "https://icons8.com"
 		)
 	) {
-		append("Icons8")
+		withStyle(
+			style = SpanStyle(
+				color = Selection,
+				textDecoration = TextDecoration.Underline
+			)
+		) {
+			append("Icons8")
+		}
 	}
 }
 

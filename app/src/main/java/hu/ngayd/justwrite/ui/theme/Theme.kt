@@ -13,16 +13,20 @@ import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
 	primary = PrimaryDark,
+	inversePrimary = SelectionDark,
 	onPrimary = CanvasColor1,
-	secondary = PrimaryDark,
-	tertiary = Pink80,
+	onPrimaryContainer = SelectionDark,
+	secondary = SettingsColorDark,
+	onSecondary = Color.White,
 )
 
 private val LightColorScheme = lightColorScheme(
 	primary = CanvasColor1,
+	inversePrimary = Selection,
 	onPrimary = Color.Black,
-	secondary = CanvasColor1,
-	tertiary = Pink40
+	onPrimaryContainer = SelectionDim,
+	secondary = Color.White,
+	onSecondary = Color.Black,
 )
 
 @Composable

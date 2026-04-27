@@ -12,10 +12,13 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
+import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -28,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -38,12 +42,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,7 +64,7 @@ class TextEditorScreen(
 	private val onSaveAs: () -> Unit,
 	private val onOpen: () -> Unit,
 	private val onOpenSettings: () -> Unit,
-	private val onOpenOverview: () -> Unit,
+	private val onOpenStats: () -> Unit,
 	private val onOpenAbout: () -> Unit,
 ) {
 
@@ -107,6 +113,11 @@ class TextEditorScreen(
 			WindowInsets.ime.getBottom(LocalDensity.current).toDp()
 		}
 
+		val selectionColors = TextSelectionColors(
+			handleColor = MaterialTheme.colorScheme.onPrimaryContainer,
+			backgroundColor = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.3f)
+		)
+
 		Scaffold(
 			modifier = Modifier
 				.fillMaxSize(),
@@ -129,27 +140,32 @@ class TextEditorScreen(
 					)
 					.verticalScroll(scrollState)
 			) {
-				BasicTextField(
-					modifier = Modifier
-						.fillMaxWidth()
-						.fillMaxHeight()
-						.padding(start = 16.dp, end = 16.dp, top = 10.dp),
-					value = text.value,
-					textStyle = TextStyle(
-						color = MaterialTheme.colorScheme.onPrimary,
-						fontSize = 18.sp
-					),
-					onValueChange = {
-						if (it.text != text.value.text) {
-							pr.restartEraseTimer()
-						}
-						pr.onTextChange(it)
-					},
-					onTextLayout = { layoutResult ->
-						textLayoutResult.value = layoutResult
-					},
-					interactionSource = interactionSource
-				)
+				CompositionLocalProvider(
+					LocalTextSelectionColors provides selectionColors
+				) {
+					BasicTextField(
+						modifier = Modifier
+							.fillMaxWidth()
+							.fillMaxHeight()
+							.padding(start = 16.dp, end = 16.dp, top = 10.dp),
+						value = text.value,
+						textStyle = TextStyle(
+							color = MaterialTheme.colorScheme.onPrimary,
+							fontSize = 18.sp
+						),
+						onValueChange = {
+							if (it.text != text.value.text) {
+								pr.restartEraseTimer()
+							}
+							pr.onTextChange(it)
+						},
+						onTextLayout = { layoutResult ->
+							textLayoutResult.value = layoutResult
+						},
+						interactionSource = interactionSource,
+						cursorBrush = SolidColor(MaterialTheme.colorScheme.onPrimary),
+					)
+				}
 			}
 		}
 	}
@@ -164,11 +180,11 @@ class TextEditorScreen(
 
 		Column {
 			TopAppBar(
-				modifier = modifier,
+				modifier = modifier.height(80.dp),
 				title = {
 					Text(
 						appBarText.value,
-						color = Color.White
+						color = MaterialTheme.colorScheme.onPrimary
 					)
 				},
 				actions = {
@@ -198,24 +214,25 @@ class TextEditorScreen(
 					}
 					IconButton(onClick = { isMenuExpanded = true }) {
 						Image(
-							painter = painterResource(id = R.drawable.menu),
+							painter = painterResource(id = R.drawable.menuvertical),
 							contentDescription = stringResource(R.string.menu_title)
 						)
 					}
 					DropdownMenu(
 						expanded = isMenuExpanded,
-						onDismissRequest = { isMenuExpanded = false }
+						onDismissRequest = { isMenuExpanded = false },
+						offset = DpOffset(x = 50.dp, y = 12.dp)
 					) {
 						DropdownMenuItem(
-							text = { Text(stringResource(R.string.overview_title)) },
+							text = { Text(stringResource(R.string.stats_title)) },
 							onClick = {
 								isMenuExpanded = false
-								onOpenOverview()
+								onOpenStats()
 							},
 							leadingIcon = {
 								Image(
-									painter = painterResource(id = R.drawable.overview),
-									contentDescription = stringResource(R.string.overview_title)
+									painter = painterResource(id = R.drawable.stats),
+									contentDescription = stringResource(R.string.stats_title)
 								)
 							},
 						)
@@ -248,7 +265,7 @@ class TextEditorScreen(
 					}
 				},
 				colors = TopAppBarDefaults.topAppBarColors(
-					containerColor = MaterialTheme.colorScheme.secondary,
+					containerColor = MaterialTheme.colorScheme.primary,
 				)
 			)
 

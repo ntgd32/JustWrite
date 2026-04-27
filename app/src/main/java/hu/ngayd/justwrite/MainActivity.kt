@@ -84,9 +84,9 @@ class MainActivity : ComponentActivity() {
 						SessionState.setDialogOpened()
 						areSettingsOpened.value = true
 					},
-					onOpenOverview = {
+					onOpenStats = {
 						SessionState.setDialogOpened()
-						openedDialog.value = DialogType.OVERVIEW
+						openedDialog.value = DialogType.STATS
 					},
 					onOpenAbout = {
 						SessionState.setDialogOpened()
@@ -103,12 +103,12 @@ class MainActivity : ComponentActivity() {
 						},
 					).Screen()
 
-				if (openedDialog.value == DialogType.OVERVIEW) {
+				if (openedDialog.value == DialogType.STATS) {
 					val stats = TextRepository.getStats()
 					InfoDialog(
-						title = stringResource(R.string.overview_title),
+						title = stringResource(R.string.stats_title),
 						text = stringResource(
-							R.string.overview_text,
+							R.string.stats_text,
 							stats.wordsWritten,
 							stats.charactersWritten,
 							stats.wordsLost,

@@ -6,9 +6,9 @@
 		android:allowBackup="true"
 		android:dataExtractionRules="@xml/data_extraction_rules"
 		android:fullBackupContent="@xml/backup_rules"
-		android:icon="@mipmap/quill"
+		android:icon="@mipmap/ra_quill"
 		android:label="@string/app_name"
-		android:roundIcon="@mipmap/quill_round"
+		android:roundIcon="@mipmap/ra_quill_round"
 		android:supportsRtl="true"
 		android:theme="@style/Theme.JustWrite"
 		tools:targetApi="31">

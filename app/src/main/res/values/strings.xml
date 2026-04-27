@@ -7,10 +7,10 @@
 	<string name="save_title">Save File</string>
 	<string name="menu_title">Menu</string>
 	<string name="settings_title">Settings</string>
-	<string name="overview_title">Overview</string>
+	<string name="stats_title">Text stats</string>
 	<string name="about_title">About</string>
 
-	<string name="overview_text">Written words: %1$d\n
+	<string name="stats_text">Written words: %1$d\n
 	Written characters: %2$d\n
 	Lost words: %3$d\n
 	Lost characters: %4$d

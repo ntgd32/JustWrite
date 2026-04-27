@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.ngayd.justwrite.repository.EraseDelay
 import hu.ngayd.justwrite.repository.SettingsRepository
-import hu.ngayd.justwrite.ui.theme.SettingsColor
 
 class SettingsScreen(
 	private val onBack: () -> Unit,
@@ -46,7 +47,7 @@ class SettingsScreen(
 			modifier = Modifier
 				.fillMaxSize()
 				.windowInsetsPadding(WindowInsets.systemBars)
-				.background(color = SettingsColor)
+				.background(color = MaterialTheme.colorScheme.secondary)
 		) {
 			IconButton(
 				modifier = Modifier
@@ -91,7 +92,8 @@ class SettingsScreen(
 				style = TextStyle(
 					fontSize = 18.sp,
 					lineHeight = 24.sp,
-				)
+				),
+				color = MaterialTheme.colorScheme.onSecondary
 			)
 
 			Spacer(Modifier.height(8.dp))
@@ -137,9 +139,18 @@ class SettingsScreen(
 			RadioButton(
 				selected = selected,
 				onClick = onClick,
+				colors = RadioButtonColors(
+					selectedColor = MaterialTheme.colorScheme.onSecondary,
+					unselectedColor = MaterialTheme.colorScheme.onSecondary,
+					disabledSelectedColor = MaterialTheme.colorScheme.onSecondary,
+					disabledUnselectedColor = MaterialTheme.colorScheme.onSecondary
+				)
 			)
 			Spacer(Modifier.width(8.dp))
-			Text(text)
+			Text(
+				text = text,
+				color = MaterialTheme.colorScheme.onSecondary
+			)
 		}
 	}
 }

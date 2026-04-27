@@ -59,4 +59,4 @@ fun InfoDialog(
 	}
 }
 
-enum class DialogType { OVERVIEW, ABOUT }
+enum class DialogType { STATS, ABOUT }
