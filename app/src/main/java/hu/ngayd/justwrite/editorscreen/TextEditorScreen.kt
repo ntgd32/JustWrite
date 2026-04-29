@@ -1,20 +1,21 @@
 package hu.ngayd.justwrite.editorscreen
 
-import androidx.compose.animation.core.SpringSpec
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
@@ -43,7 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
@@ -75,26 +76,18 @@ class TextEditorScreen(
 		val scrollState = rememberScrollState()
 		val textLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
 		val text = pr.textFlow.collectAsState()
+		val configuration = LocalConfiguration.current
+		val isVertical = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+		val scrollOffset = if (isVertical) 0.9 else 0.6
 
 		//scrolling to cursor on keyboard opening
 		LaunchedEffect(imeState.value) {
 			val cursorPosition = textLayoutResult.value?.getCursorRect(text.value.selection.start)?.top?.toInt()
 			if (imeState.value && cursorPosition != null) {
-				val scrollPosition = cursorPosition - 1000
 				coroutineScope.launch {
 					delay(100)
-					if (scrollPosition < scrollState.maxValue) scrollState.animateScrollTo(scrollPosition, SpringSpec())
-					else scrollState.animateScrollTo(scrollState.maxValue)
-				}
-			}
-		}
-		//scrolling to cursor while printing
-		LaunchedEffect(text.value.selection.end) {
-			val cursorPosition = textLayoutResult.value?.getCursorRect(text.value.selection.end)?.top?.toInt()
-			if (cursorPosition != null) {
-				val scrollPosition = cursorPosition - 1000
-				coroutineScope.launch {
-					if (scrollPosition < scrollState.maxValue) scrollState.animateScrollTo(scrollPosition, SpringSpec())
+					val scrollPosition = cursorPosition - (scrollState.viewportSize * scrollOffset).toInt()
+					if (scrollPosition < scrollState.maxValue) scrollState.animateScrollTo(scrollPosition)
 					else scrollState.animateScrollTo(scrollState.maxValue)
 				}
 			}
@@ -109,14 +102,12 @@ class TextEditorScreen(
 			if (!isFocused.value && text.value.text == "") pr.onTextChange(pr.placeholder)
 		}
 
-		val keyboardHeight = with(LocalDensity.current) {
-			WindowInsets.ime.getBottom(LocalDensity.current).toDp()
-		}
-
 		val selectionColors = TextSelectionColors(
 			handleColor = MaterialTheme.colorScheme.onPrimaryContainer,
 			backgroundColor = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.3f)
 		)
+		val bringIntoViewRequester = remember { BringIntoViewRequester() }
+		val topBottomOffset = if (isVertical) 8.dp else 4.dp
 
 		Scaffold(
 			modifier = Modifier
@@ -130,13 +121,14 @@ class TextEditorScreen(
 		) { innerPadding ->
 			Column(
 				modifier = Modifier
+					.imePadding()
 					.fillMaxSize()
 					.background(color = MaterialTheme.colorScheme.primary)
 					.padding(
-						top = innerPadding.calculateTopPadding(),
+						top = innerPadding.calculateTopPadding() + topBottomOffset,
 						start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
 						end = innerPadding.calculateEndPadding(LayoutDirection.Ltr),
-						bottom = if (imeState.value) keyboardHeight else innerPadding.calculateBottomPadding()
+						bottom = if (!imeState.value) innerPadding.calculateBottomPadding() + topBottomOffset else topBottomOffset
 					)
 					.verticalScroll(scrollState)
 			) {
@@ -147,7 +139,8 @@ class TextEditorScreen(
 						modifier = Modifier
 							.fillMaxWidth()
 							.fillMaxHeight()
-							.padding(start = 16.dp, end = 16.dp, top = 10.dp),
+							.bringIntoViewRequester(bringIntoViewRequester)
+							.padding(start = 16.dp, end = 16.dp),
 						value = text.value,
 						textStyle = TextStyle(
 							color = MaterialTheme.colorScheme.onPrimary,
@@ -161,6 +154,10 @@ class TextEditorScreen(
 						},
 						onTextLayout = { layoutResult ->
 							textLayoutResult.value = layoutResult
+							val cursorRect = layoutResult.getCursorRect(text.value.selection.start)
+							coroutineScope.launch {
+								bringIntoViewRequester.bringIntoView(cursorRect) //scroll to cursor position by typing
+							}
 						},
 						interactionSource = interactionSource,
 						cursorBrush = SolidColor(MaterialTheme.colorScheme.onPrimary),
